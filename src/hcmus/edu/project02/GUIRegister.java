@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class GUILogin extends JFrame implements ActionListener {
+public class GUIRegister extends JFrame implements ActionListener {
     // Window width, height
     public static int DEFAULT_WIDTH = 350;
     public static int DEFAULT_HEIGHT = 170;
@@ -20,7 +20,7 @@ public class GUILogin extends JFrame implements ActionListener {
     // Large headerLabel
     JLabel headerLabel = new JLabel("Login");
 
-    public GUILogin() {
+    public GUIRegister() {
         // Set title for window
         setTitle("Login/Register");
         // Setting the width and height of frame
@@ -60,41 +60,7 @@ public class GUILogin extends JFrame implements ActionListener {
 
 
     public void initializeForm(JPanel labelPanel, JPanel tfPanel, JPanel btnPanel) {
-
-        // labelPanel setting
-        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
-        labelPanel.setBorder(DEFAULT_EMPTY_BORDER);
-        // user label
-        JLabel userLabel = new JLabel("User");
-        labelPanel.add(userLabel);
-        // password label
-        JLabel pwdLabel = new JLabel("Password");
-        labelPanel.add(pwdLabel);
-
-        // tfPanel setting
-        tfPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
-        tfPanel.setBorder(DEFAULT_EMPTY_BORDER);
-        // user input text field
-        JTextField userInput = new JTextField(DEFAULT_INPUT_COLUMN);
-        userInput.setMaximumSize(INPUT_FIELD_MAX_SIZE);
-        tfPanel.add(userInput);
-        // pwd input text field
-        JPasswordField pwdInput = new JPasswordField(DEFAULT_INPUT_COLUMN);
-        pwdInput.setMaximumSize(INPUT_FIELD_MAX_SIZE);
-        tfPanel.add(pwdInput);
-
-        // Button Panel
-        btnPanel.setLayout(new FlowLayout());
-        btnPanel.setBorder(DEFAULT_EMPTY_BORDER);
-        // login button
-        JButton loginBtn = new JButton("Login");
-        loginBtn.setMaximumSize(BUTTON_MAX_SIZE);
-        btnPanel.add(loginBtn);
-
-        // Register Btn
-        JButton regBtn = new JButton("Register");
-        regBtn.setMaximumSize(BUTTON_MAX_SIZE);
-        btnPanel.add(regBtn);
+        
     }
 
     @Override
