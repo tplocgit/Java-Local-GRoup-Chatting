@@ -5,6 +5,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.TreeMap;
 
 public class GUILogin extends JFrame implements ActionListener {
     // Window width, height
@@ -16,11 +18,14 @@ public class GUILogin extends JFrame implements ActionListener {
     public static EmptyBorder DEFAULT_EMPTY_BORDER = new EmptyBorder(10, 10, 10, 10);
     public static Dimension INPUT_FIELD_MAX_SIZE = new Dimension(Integer.MAX_VALUE, DEFAULT_COMPONENT_HEIGHT);
     public static Dimension BUTTON_MAX_SIZE = new Dimension(DEFAULT_BTN_WIDTH, DEFAULT_COMPONENT_HEIGHT);
+    public static String PATH = "accounts.txt";
 
     // Large headerLabel
     JLabel headerLabel = new JLabel("<html><span style='font-size:16px;color:red>Login</span></html>");
+    JFrame mainFrame = this;
+    TreeMap<String, Account> accountMap = AccountsFileControllers.read(PATH);
 
-    public GUILogin() {
+    public GUILogin() throws IOException {
         // Set title for window
         setTitle("Register");
         // Setting the width and height of frame
@@ -91,11 +96,43 @@ public class GUILogin extends JFrame implements ActionListener {
         JButton loginBtn = new JButton("Login");
         loginBtn.setMaximumSize(BUTTON_MAX_SIZE);
         btnPanel.add(loginBtn);
+        // login btn action listener
+        loginBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String user = userInput.getText();
+                String pwd = new String(pwdInput.getPassword());
+
+                boolean access = true;
+                if (!accountMap.containsKey(user)) {
+                    access = false;
+                    JOptionPane.showMessageDialog(mainFrame,"User not found!!!");
+                }
+                if (access) {
+                    Account current = new Account(user, pwd);
+                    if (current.equals(accountMap.get(current.getUser()))) {
+                        JOptionPane.showMessageDialog(mainFrame,"OK!!!");
+                    }
+                    else JOptionPane.showMessageDialog(mainFrame,"NO!!!");
+                }
+            }
+        });
 
         // Register Btn
         JButton regBtn = new JButton("Register");
         regBtn.setMaximumSize(BUTTON_MAX_SIZE);
         btnPanel.add(regBtn);
+        // RegBtn action listener
+        regBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    JFrame regPage = new GUIRegister();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        });
     }
 
     private static void marginLabelTop(JLabel target, int size) {
