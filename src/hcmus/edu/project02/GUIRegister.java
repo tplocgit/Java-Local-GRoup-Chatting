@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 public class GUIRegister extends JFrame implements ActionListener {
     // Window width, height
     public static int DEFAULT_WIDTH = 350;
-    public static int DEFAULT_HEIGHT = 170;
+    public static int DEFAULT_HEIGHT = 220;
     public static int DEFAULT_COMPONENT_HEIGHT = 25;
     public static int DEFAULT_BTN_WIDTH = 100;
     public static int DEFAULT_INPUT_COLUMN = 20;
@@ -18,11 +18,11 @@ public class GUIRegister extends JFrame implements ActionListener {
     public static Dimension BUTTON_MAX_SIZE = new Dimension(DEFAULT_BTN_WIDTH, DEFAULT_COMPONENT_HEIGHT);
 
     // Large headerLabel
-    JLabel headerLabel = new JLabel("Login");
+    JLabel headerLabel = new JLabel("<html><span style='font-size:16px;color:red''>Register</span></html>");
 
     public GUIRegister() {
         // Set title for window
-        setTitle("Login/Register");
+        setTitle("Register");
         // Setting the width and height of frame
         setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,7 +60,53 @@ public class GUIRegister extends JFrame implements ActionListener {
 
 
     public void initializeForm(JPanel labelPanel, JPanel tfPanel, JPanel btnPanel) {
-        
+        // labelPanel setting
+        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
+        labelPanel.setBorder(DEFAULT_EMPTY_BORDER);
+        // user label
+        JLabel userLabel = new JLabel("User");
+        labelPanel.add(userLabel);
+        // password label
+        JLabel pwdLabel = new JLabel("Password");
+        marginLabelTop(pwdLabel, 10);
+        labelPanel.add(pwdLabel);
+        // confirm password label
+        JLabel confirmLabel = new JLabel("Confirm PWD");
+        marginLabelTop(confirmLabel, 10);
+        labelPanel.add(confirmLabel);
+
+        // tfPanel setting
+        tfPanel.setLayout(new BoxLayout(tfPanel, BoxLayout.Y_AXIS));
+        tfPanel.setBorder(DEFAULT_EMPTY_BORDER);
+        // user input text field
+        JTextField userInput = new JTextField(DEFAULT_INPUT_COLUMN);
+        userInput.setMaximumSize(INPUT_FIELD_MAX_SIZE);
+        tfPanel.add(userInput);
+        // pwd input text field
+        JPasswordField pwdInput = new JPasswordField(DEFAULT_INPUT_COLUMN);
+        pwdInput.setMaximumSize(INPUT_FIELD_MAX_SIZE);
+        tfPanel.add(pwdInput);
+        // confirm password label
+        JPasswordField confirmInput = new JPasswordField(DEFAULT_INPUT_COLUMN);
+        confirmInput.setMaximumSize(INPUT_FIELD_MAX_SIZE);
+        tfPanel.add(confirmInput);
+
+        // Button Panel
+        btnPanel.setLayout(new FlowLayout());
+        btnPanel.setBorder(DEFAULT_EMPTY_BORDER);
+        // login button
+        JButton loginBtn = new JButton("Login");
+        loginBtn.setMaximumSize(BUTTON_MAX_SIZE);
+        btnPanel.add(loginBtn);
+
+        // Register Btn
+        JButton regBtn = new JButton("Register");
+        regBtn.setMaximumSize(BUTTON_MAX_SIZE);
+        btnPanel.add(regBtn);
+    }
+
+    private static void marginLabelTop(JLabel target, int size) {
+        target.setBorder(new EmptyBorder(size, 0, 0 ,0));
     }
 
     @Override

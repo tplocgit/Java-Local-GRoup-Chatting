@@ -18,11 +18,11 @@ public class GUILogin extends JFrame implements ActionListener {
     public static Dimension BUTTON_MAX_SIZE = new Dimension(DEFAULT_BTN_WIDTH, DEFAULT_COMPONENT_HEIGHT);
 
     // Large headerLabel
-    JLabel headerLabel = new JLabel("Login");
+    JLabel headerLabel = new JLabel("<html><span style='font-size:16px;color:red>Login</span></html>");
 
     public GUILogin() {
         // Set title for window
-        setTitle("Login/Register");
+        setTitle("Register");
         // Setting the width and height of frame
         setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -69,10 +69,11 @@ public class GUILogin extends JFrame implements ActionListener {
         labelPanel.add(userLabel);
         // password label
         JLabel pwdLabel = new JLabel("Password");
+        marginLabelTop(pwdLabel, 10);
         labelPanel.add(pwdLabel);
 
         // tfPanel setting
-        tfPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
+        tfPanel.setLayout(new BoxLayout(tfPanel, BoxLayout.Y_AXIS));
         tfPanel.setBorder(DEFAULT_EMPTY_BORDER);
         // user input text field
         JTextField userInput = new JTextField(DEFAULT_INPUT_COLUMN);
@@ -95,6 +96,10 @@ public class GUILogin extends JFrame implements ActionListener {
         JButton regBtn = new JButton("Register");
         regBtn.setMaximumSize(BUTTON_MAX_SIZE);
         btnPanel.add(regBtn);
+    }
+
+    private static void marginLabelTop(JLabel target, int size) {
+        target.setBorder(new EmptyBorder(size, 0, 0 ,0));
     }
 
     @Override
