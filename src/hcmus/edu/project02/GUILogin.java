@@ -111,7 +111,8 @@ public class GUILogin extends JFrame implements ActionListener {
                 if (access) {
                     Account current = new Account(user, pwd);
                     if (current.equals(accountMap.get(current.getUser()))) {
-                        JOptionPane.showMessageDialog(mainFrame,"OK!!!");
+                        mainFrame.dispose();
+                        GUIMessage app = new GUIMessage();
                     }
                     else JOptionPane.showMessageDialog(mainFrame,"NO!!!");
                 }
