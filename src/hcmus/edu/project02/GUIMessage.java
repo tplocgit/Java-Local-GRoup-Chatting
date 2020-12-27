@@ -7,8 +7,14 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.*;
+import java.net.*;
+import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
-public class GUIMessage extends JFrame {
+public class GUIMessage extends JFrame implements Runnable {
 
     public static int DEFAULT_WIDTH = 650;
     public static int DEFAULT_HEIGHT = 500;
@@ -17,11 +23,35 @@ public class GUIMessage extends JFrame {
     public static int DEFAULT_TYPE_TA_ROWS = 3;
     public static EmptyBorder EMPTY_BORDER_TOP = new EmptyBorder(10, 0, 0, 0);
 
-    JFrame mainFrame = this;
-    public GUIMessage() {
+    private Socket clientSocket = null;
+    private BufferedReader serverReader = null;
+    private BufferedWriter serverSender = null;
+    private final GUIMessage mainFrame = this;
+    public String user;
+    public boolean isConnected = false;
+    JTextArea messArea = new JTextArea();
+    JList<String> members = new JList<>();
+
+
+    public GUIMessage(String user) {
+        this.user = user;
         setTitle("Message");
         setLayout(new BorderLayout());
         setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                mainFrame.dispose();
+                try {
+                    serverSender.write(MessagesServer.EXIT_SIGNAL);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+                System.exit(0);
+            }
+        });
 
         JPanel connectionPanel = new JPanel();
         add(connectionPanel, BorderLayout.NORTH);
@@ -39,6 +69,18 @@ public class GUIMessage extends JFrame {
     }
 
     public void initializeGUI (JPanel conPanel, JPanel contentPanel, JPanel infoPanel) {
+
+        // MessArea setting
+        contentPanel.setLayout(new BorderLayout());
+        contentPanel.setBorder(DEFAULT_EMPTY_BORDER);
+
+        JPanel messPanel = new JPanel(new BorderLayout());
+        messPanel.setBorder(new TitledBorder( new EtchedBorder(), "Messages Area"));
+        contentPanel.add(messPanel, BorderLayout.CENTER);
+
+        messPanel.add(messArea, BorderLayout.CENTER);
+        messArea.setEditable(false);
+        messArea.setBackground(Color.WHITE);
 
         // setting connection Panel
         conPanel.setLayout(new FlowLayout());
@@ -72,7 +114,37 @@ public class GUIMessage extends JFrame {
         connectBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(mainFrame, HTMLText.textSuccess("OK"));
+                String ip = ipInput.getText();
+                String inputPort = portInput.getText();
+
+                if (isInteger(inputPort)) {
+                    int port = Integer.parseInt(inputPort);
+                    if (connectionInputEvaluate(ip, port) && !isConnected) {
+                        try {
+                            clientSocket = new Socket(ip, port);
+                            serverReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                            serverSender = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                            members.add(new JLabel(HTMLText.textInfo(user)));
+                            members.updateUI();
+                            Thread thread = new Thread(mainFrame);
+                            thread.start();
+                        } catch (IOException socketException) {
+                            socketException.printStackTrace();
+                        }
+                    }
+                    else if (isConnected) {
+                        String failMess = "You already connected to a server please disconnect before connecting.";
+                        JOptionPane.showMessageDialog(mainFrame, failMess);
+                    }
+                    else {
+                        String failMess = "Fail to get port: This port is not serviced now. Please try again!";
+                        JOptionPane.showMessageDialog(mainFrame, failMess);
+                    }
+                }
+                else {
+                    String failMess = "Fail to get port: Expected integer value. Please try again!";
+                    JOptionPane.showMessageDialog(mainFrame, failMess);
+                }
             }
         });
 
@@ -82,21 +154,15 @@ public class GUIMessage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int confirm = JOptionPane.showConfirmDialog(mainFrame, HTMLText.textDanger("Are You sure to DISCONNECT?"));
+                try {
+                    serverSender.write(MessagesServer.EXIT_SIGNAL);
+                    clientSocket.close();
+                    isConnected = false;
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
             }
         });
-
-        // MessArea setting
-        contentPanel.setLayout(new BorderLayout());
-        contentPanel.setBorder(DEFAULT_EMPTY_BORDER);
-
-        JPanel messPanel = new JPanel(new BorderLayout());
-        messPanel.setBorder(new TitledBorder( new EtchedBorder(), "Messages Area"));
-        contentPanel.add(messPanel, BorderLayout.CENTER);
-
-        JTextArea messArea = new JTextArea();
-        messPanel.add(messArea, BorderLayout.CENTER);
-        messArea.setEditable(false);
-        messArea.setBackground(Color.WHITE);
 
 
         // Type Area + send Panel
@@ -115,7 +181,7 @@ public class GUIMessage extends JFrame {
 
         JScrollPane scroll = new JScrollPane (typeArea);
         typeAreaPanel.add(scroll);
-        scroll.setVerticalScrollBarPolicy ( ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS );
+        scroll.setVerticalScrollBarPolicy (ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         typeArea.setBorder(new EmptyBorder(5, 5, 5, 5));
         messScreenPanel.add(typeAreaPanel, BorderLayout.CENTER);
 
@@ -126,16 +192,71 @@ public class GUIMessage extends JFrame {
 
         JButton sendBtn = new JButton(HTMLText.textPrimary("Send"));
         sendBtnPanel.add(sendBtn, BorderLayout.CENTER);
+        sendBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String message = typeArea.getText();
+                if (!message.isEmpty()) {
+                    try {
+                        StringTokenizer tokenizer = new StringTokenizer(message, "\n");
+                        String line;
+                        while (tokenizer.hasMoreTokens()) {
+                            line = user + ": " + tokenizer.nextToken().trim();
+                            serverSender.write(line);
+                            serverSender.newLine();
+                            serverSender.flush();
+                        }
+
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                    typeArea.setText("");
+                }
+            }
+        });
 
         // Info
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBorder(new TitledBorder(new EtchedBorder(), "Members"));
         infoPanel.setPreferredSize(new Dimension(DEFAULT_WIDTH / 6, messScreenPanel.getHeight()));
 
-        String[] mems = {HTMLText.textInfo("Ducky Lark"), "Little Biz", "Sugar Deady"};
-        JList<String> members = new JList<>(mems);
         members.setBorder(DEFAULT_EMPTY_BORDER);
         infoPanel.add(members);
         contentPanel.add(infoPanel, BorderLayout.EAST);
+    }
+
+    private boolean connectionInputEvaluate(String ip, int port) {
+        return ip.equalsIgnoreCase(MessagesServer.IP) && port == MessagesServer.PORT;
+    }
+
+    private boolean isInteger(String data) {
+        try {
+            Integer.parseInt(data);
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            String serverMessages;
+            while (true) {
+                if (serverReader != null) {
+                    if ((serverMessages = serverReader.readLine()) == null) break;
+                    System.out.println(serverMessages);
+                    messArea.append(serverMessages + "\n");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        // write your code here
+        GUILogin app = new GUILogin();
     }
 }

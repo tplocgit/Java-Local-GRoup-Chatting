@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.TreeMap;
 
-public class GUILogin extends JFrame implements ActionListener {
+public class GUILogin extends JFrame {
     // Window width, height
     public static int DEFAULT_WIDTH = 350;
     public static int DEFAULT_HEIGHT = 170;
@@ -112,7 +112,7 @@ public class GUILogin extends JFrame implements ActionListener {
                     Account current = new Account(user, pwd);
                     if (current.equals(accountMap.get(current.getUser()))) {
                         mainFrame.dispose();
-                        GUIMessage app = new GUIMessage();
+                        GUIMessage app = new GUIMessage(user);
                     }
                     else JOptionPane.showMessageDialog(mainFrame,"NO!!!");
                 }
@@ -128,6 +128,7 @@ public class GUILogin extends JFrame implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
+                    mainFrame.dispose();
                     JFrame regPage = new GUIRegister();
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
@@ -138,10 +139,5 @@ public class GUILogin extends JFrame implements ActionListener {
 
     private static void marginLabelTop(JLabel target, int size) {
         target.setBorder(new EmptyBorder(size, 0, 0 ,0));
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
     }
 }
