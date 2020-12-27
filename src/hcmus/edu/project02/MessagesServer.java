@@ -4,12 +4,13 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 public class MessagesServer implements Runnable{
     public static String EXIT_SIGNAL = "__EXIT__";
+    public static String ENTER_CODE = "13a05b00c";
     public static int PORT = 3200;
     public static String IP = "localhost";
+    public static ArrayList<String> enteredUsers = new ArrayList<>();
 
     Socket clientSocket;
 
@@ -24,6 +25,24 @@ public class MessagesServer implements Runnable{
         }
     }
 
+    public void sendTo(BufferedWriter clientSender, String mess) throws IOException {
+        clientSender.write(mess);
+        clientSender.newLine();
+        clientSender.flush();
+    }
+
+    public void sendToAll(String message) {
+        for(BufferedWriter clientSender : clientSenders) {
+            try {
+                clientSender.write(message);
+                clientSender.newLine();
+                clientSender.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     public void run() {
         try {
@@ -33,9 +52,23 @@ public class MessagesServer implements Runnable{
 
             clientSenders.add(clientSender);
 
-            clientSender.write("Welcome to our room!!!");
-            clientSender.newLine();
-            clientSender.flush();
+            String user = clientReader.readLine();
+
+            sendTo(clientSender, "Welcome to our room!");
+
+            sendToAll(user + " entered the room!");
+
+            sendToAll(ENTER_CODE);
+            sendToAll(user);
+
+            for (String enteredUSer : enteredUsers) {
+                sendTo(clientSender, ENTER_CODE);
+                sendTo(clientSender, enteredUSer);
+            }
+
+            enteredUsers.add(user);
+
+
             while (true) {
                 String clientMessage;
                 while (true) {
@@ -44,15 +77,7 @@ public class MessagesServer implements Runnable{
 
                     System.out.println("Received: " + clientMessage);
 
-                    for(BufferedWriter cs : clientSenders) {
-                        try {
-                            cs.write(clientMessage);
-                            cs.newLine();
-                            cs.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    sendToAll(clientMessage);
                 }
 
             }

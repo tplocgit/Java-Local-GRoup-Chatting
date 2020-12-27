@@ -30,8 +30,8 @@ public class GUIMessage extends JFrame implements Runnable {
     public String user;
     public boolean isConnected = false;
     JTextArea messArea = new JTextArea();
-    JList<String> members = new JList<>();
-
+    DefaultListModel<String> listModel = new DefaultListModel<>();
+    JList<String> members = new JList<>(listModel);
 
     public GUIMessage(String user) {
         this.user = user;
@@ -91,8 +91,9 @@ public class GUIMessage extends JFrame implements Runnable {
         JLabel ipLabel = new JLabel("IP");
         ipPanel.add(ipLabel);
 
-        JTextField ipInput = new JTextField(DEFAULT_COLUMN);
+        JTextField ipInput = new JTextField("localhost", DEFAULT_COLUMN);
         ipPanel.add(ipInput);
+        ipInput.setEditable(false);
         conPanel.add(ipPanel);
 
         // Enter Port Panel
@@ -102,8 +103,9 @@ public class GUIMessage extends JFrame implements Runnable {
         JLabel portLabel = new JLabel("Port");
         portPanel.add(portLabel);
 
-        JTextField portInput = new JTextField(DEFAULT_COLUMN);
+        JTextField portInput = new JTextField("3200", DEFAULT_COLUMN);
         portPanel.add(portInput);
+        portInput.setEditable(false);
 
         // Connection Button
         JPanel conBtnPanel = new JPanel(new FlowLayout());
@@ -124,8 +126,9 @@ public class GUIMessage extends JFrame implements Runnable {
                             clientSocket = new Socket(ip, port);
                             serverReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                             serverSender = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-                            members.add(new JLabel(HTMLText.textInfo(user)));
-                            members.updateUI();
+                            serverSender.write(user);
+                            serverSender.newLine();
+                            serverSender.flush();
                             Thread thread = new Thread(mainFrame);
                             thread.start();
                         } catch (IOException socketException) {
@@ -247,16 +250,16 @@ public class GUIMessage extends JFrame implements Runnable {
                 if (serverReader != null) {
                     if ((serverMessages = serverReader.readLine()) == null) break;
                     System.out.println(serverMessages);
-                    messArea.append(serverMessages + "\n");
+                    if (!serverMessages.equals(MessagesServer.ENTER_CODE))
+                        messArea.append(serverMessages + "\n");
+                    else {
+                        if ((serverMessages = serverReader.readLine()) == null) break;
+                        listModel.addElement(serverMessages);
+                    }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        // write your code here
-        GUILogin app = new GUILogin();
     }
 }
