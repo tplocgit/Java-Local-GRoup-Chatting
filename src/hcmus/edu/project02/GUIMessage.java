@@ -29,6 +29,7 @@ public class GUIMessage extends JFrame implements Runnable {
     private final GUIMessage mainFrame = this;
     public String user;
     public boolean isConnected = false;
+    Thread thread;
     JTextArea messArea = new JTextArea();
     DefaultListModel<String> listModel = new DefaultListModel<>();
     JList<String> members = new JList<>(listModel);
@@ -129,7 +130,8 @@ public class GUIMessage extends JFrame implements Runnable {
                             serverSender.write(user);
                             serverSender.newLine();
                             serverSender.flush();
-                            Thread thread = new Thread(mainFrame);
+                            isConnected = true;
+                            thread = new Thread(mainFrame);
                             thread.start();
                         } catch (IOException socketException) {
                             socketException.printStackTrace();
@@ -156,13 +158,22 @@ public class GUIMessage extends JFrame implements Runnable {
         disconnectBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(mainFrame, HTMLText.textDanger("Are You sure to DISCONNECT?"));
-                try {
-                    serverSender.write(MessagesServer.EXIT_SIGNAL);
-                    clientSocket.close();
-                    isConnected = false;
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                JOptionPane.showMessageDialog(mainFrame, HTMLText.textDanger("You are DISCONNECTED from server!!!"));
+                if (isConnected) {
+                    try {
+                        serverSender.write(MessagesServer.EXIT_SIGNAL);
+                        serverSender.newLine();
+                        serverSender.flush();
+                        thread.interrupt();
+                        clientSocket.close();
+                        isConnected = false;
+                        listModel.removeAllElements();
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                }
+                else {
+                    JOptionPane.showMessageDialog(mainFrame, "You must connected before disconnect");
                 }
             }
         });
@@ -198,22 +209,26 @@ public class GUIMessage extends JFrame implements Runnable {
         sendBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (!isConnected)
+                    JOptionPane.showMessageDialog(mainFrame, "You must connect to server before send a message!!!");
+                else {
                 String message = typeArea.getText();
-                if (!message.isEmpty()) {
-                    try {
-                        StringTokenizer tokenizer = new StringTokenizer(message, "\n");
-                        String line;
-                        while (tokenizer.hasMoreTokens()) {
-                            line = user + ": " + tokenizer.nextToken().trim();
-                            serverSender.write(line);
-                            serverSender.newLine();
-                            serverSender.flush();
-                        }
+                    if (!message.isEmpty()) {
+                        try {
+                            StringTokenizer tokenizer = new StringTokenizer(message, "\n");
+                            String line;
+                            while (tokenizer.hasMoreTokens()) {
+                                line = user + ": " + tokenizer.nextToken().trim();
+                                serverSender.write(line);
+                                serverSender.newLine();
+                                serverSender.flush();
+                            }
 
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                        typeArea.setText("");
                     }
-                    typeArea.setText("");
                 }
             }
         });
@@ -244,22 +259,27 @@ public class GUIMessage extends JFrame implements Runnable {
 
     @Override
     public void run() {
+        String serverMessages = "";
         try {
-            String serverMessages;
-            while (true) {
+            while (!clientSocket.isClosed()) {
                 if (serverReader != null) {
                     if ((serverMessages = serverReader.readLine()) == null) break;
                     System.out.println(serverMessages);
-                    if (!serverMessages.equals(MessagesServer.ENTER_CODE))
-                        messArea.append(serverMessages + "\n");
-                    else {
+                    if (serverMessages.equals(MessagesServer.ENTER_CODE)) {
                         if ((serverMessages = serverReader.readLine()) == null) break;
                         listModel.addElement(serverMessages);
+                    }
+                    else if (serverMessages.equals(MessagesServer.LEFT_CODE)) {
+                        if ((serverMessages = serverReader.readLine()) == null) break;
+                        listModel.removeElement(serverMessages);
+                    }
+                    else {
+                        messArea.append(serverMessages + "\n");
                     }
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            listModel.removeElement(serverMessages);
         }
     }
 }

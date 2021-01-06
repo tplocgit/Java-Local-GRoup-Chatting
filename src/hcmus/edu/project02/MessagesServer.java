@@ -8,8 +8,10 @@ import java.util.ArrayList;
 public class MessagesServer implements Runnable{
     public static String EXIT_SIGNAL = "__EXIT__";
     public static String ENTER_CODE = "13a05b00c";
+    public static String LEFT_CODE = "c00b50a31";
     public static int PORT = 3200;
     public static String IP = "localhost";
+    public static boolean isRunning = false;
     public static ArrayList<String> enteredUsers = new ArrayList<>();
 
     Socket clientSocket;
@@ -38,7 +40,7 @@ public class MessagesServer implements Runnable{
                 clientSender.newLine();
                 clientSender.flush();
             } catch (IOException e) {
-                e.printStackTrace();
+                clientSenders.remove(clientSender);
             }
         }
     }
@@ -57,6 +59,7 @@ public class MessagesServer implements Runnable{
             sendTo(clientSender, "Welcome to our room!");
 
             sendToAll(user + " entered the room!");
+            System.out.println(user + " entered the room!");
 
             sendToAll(ENTER_CODE);
             sendToAll(user);
@@ -73,11 +76,22 @@ public class MessagesServer implements Runnable{
                 String clientMessage;
                 while (true) {
                     if ((clientMessage = clientReader.readLine()) == null) break;
-                    System.out.println(clientMessage);
 
-                    System.out.println("Received: " + clientMessage);
 
-                    sendToAll(clientMessage);
+                    if(clientMessage.equals(EXIT_SIGNAL)) {
+                        clientSenders.remove(clientSender);
+                        System.out.println(user + " have left the room");
+                        sendToAll(user + " have left the room");
+                        sendToAll(LEFT_CODE);
+                        sendToAll(user);
+                        enteredUsers.remove(user);
+                        System.out.println(enteredUsers.toString());
+                    }
+                    else {
+                        System.out.println(clientMessage);
+                        System.out.println("Received: " + clientMessage);
+                        sendToAll(clientMessage);
+                    }
                 }
 
             }
@@ -89,6 +103,7 @@ public class MessagesServer implements Runnable{
 
     public static void main(String[] args) throws Exception {
         ServerSocket serverSocket = new ServerSocket(PORT);
+        isRunning = true;
         while (true) {
             Socket client = serverSocket.accept();
             MessagesServer server = new MessagesServer(client);
