@@ -10,7 +10,7 @@ public class MessagesServer implements Runnable{
     public static String ENTER_CODE = "13a05b00c";
     public static String LEFT_CODE = "c00b50a31";
     public static int PORT = 3200;
-    public static String IP = "localhost";
+    public static String IP = "172.16.5.83";
     public static boolean isRunning = false;
     public static ArrayList<String> enteredUsers = new ArrayList<>();
 

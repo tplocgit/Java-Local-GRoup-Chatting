@@ -92,7 +92,7 @@ public class GUIMessage extends JFrame implements Runnable {
         JLabel ipLabel = new JLabel("IP");
         ipPanel.add(ipLabel);
 
-        JTextField ipInput = new JTextField("localhost", DEFAULT_COLUMN);
+        JTextField ipInput = new JTextField(MessagesServer.IP, DEFAULT_COLUMN);
         ipPanel.add(ipInput);
         ipInput.setEditable(false);
         conPanel.add(ipPanel);
