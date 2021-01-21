@@ -4,13 +4,14 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class MessagesServer implements Runnable{
     public static String EXIT_SIGNAL = "__EXIT__";
     public static String ENTER_CODE = "13a05b00c";
     public static String LEFT_CODE = "c00b50a31";
     public static int PORT = 3200;
-    public static String IP = "172.16.5.83";
+    public static String IP = "192.168.43.159";
     public static boolean isRunning = false;
     public static ArrayList<String> enteredUsers = new ArrayList<>();
 
@@ -102,6 +103,9 @@ public class MessagesServer implements Runnable{
     }
 
     public static void main(String[] args) throws Exception {
+        System.out.print("Enter IP: ");
+        Scanner input = new Scanner(System.in);
+        IP = input.nextLine();
         ServerSocket serverSocket = new ServerSocket(PORT);
         isRunning = true;
         while (true) {
